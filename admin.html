@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin · Mi Tienda ML</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --yellow: #FFE600;
+    --blue:   #3483FA;
+    --bg:     #0D0D0D;
+    --s1:     #161616;
+    --s2:     #202020;
+    --border: #2A2A2A;
+    --text:   #F0F0F0;
+    --muted:  #666;
+    --red:    #FF4D4D;
+    --green:  #2ECC71;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* ── LOGIN SCREEN ── */
+  #login-screen {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 2rem;
+  }
+  .login-box {
+    background: var(--s1); border: 1px solid var(--border);
+    border-radius: 18px; padding: 2.5rem; width: 100%; max-width: 380px;
+    display: flex; flex-direction: column; gap: 1.4rem;
+    animation: pop .3s ease;
+  }
+  @keyframes pop { from { opacity:0; transform:scale(.96) } to { opacity:1; transform:scale(1) } }
+  .login-logo { display: flex; align-items: center; gap: 9px; }
+  .login-logo .badge { background: var(--yellow); color:#000; font-family:'Bebas Neue',sans-serif; font-size:1rem; padding:3px 9px; border-radius:4px; }
+  .login-logo span { font-family:'Bebas Neue',sans-serif; font-size:1.3rem; letter-spacing:2px; }
+  .login-box h2 { font-family:'Bebas Neue',sans-serif; font-size:1.6rem; letter-spacing:1px; }
+  .login-box p { font-size:.82rem; color:var(--muted); line-height:1.5; }
+
+  .field label { display:block; font-size:.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-bottom:5px; font-weight:500; }
+  .field input, .field textarea {
+    width:100%; background:var(--s2); border:1px solid var(--border);
+    border-radius:8px; color:var(--text); font-family:'DM Sans',sans-serif;
+    font-size:.92rem; padding:9px 12px; outline:none; transition:border-color .15s;
+  }
+  .field input:focus, .field textarea:focus { border-color: var(--yellow); }
+  .field textarea { resize:vertical; min-height:70px; }
+
+  .btn {
+    cursor:pointer; border:none; font-family:'DM Sans',sans-serif;
+    font-weight:600; border-radius:8px; transition:all .18s;
+    display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  }
+  .btn-yellow { background:var(--yellow); color:#000; padding:10px 20px; font-size:.92rem; width:100%; }
+  .btn-yellow:hover { box-shadow: 0 4px 18px rgba(255,230,0,.25); transform:translateY(-1px); }
+  .btn-yellow:disabled { opacity:.5; cursor:not-allowed; transform:none; box-shadow:none; }
+  .btn-ghost { background:transparent; color:var(--muted); padding:8px 14px; font-size:.85rem; border:1px solid var(--border); }
+  .btn-ghost:hover { border-color:var(--muted); color:var(--text); }
+  .btn-red { background:transparent; color:var(--red); padding:7px 11px; font-size:.82rem; border:1px solid transparent; border-radius:7px; }
+  .btn-red:hover { border-color:var(--red); background:rgba(255,77,77,.08); }
+
+  /* ── MAIN APP ── */
+  #app { display:none; }
+
+  header {
+    position:sticky; top:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 2rem; height:60px;
+    background:rgba(13,13,13,.94); backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--border);
+  }
+  .header-logo { display:flex; align-items:center; gap:9px; }
+  .header-logo .badge { background:var(--yellow); color:#000; font-family:'Bebas Neue',sans-serif; font-size:.95rem; padding:2px 8px; border-radius:4px; }
+  .header-logo span { font-family:'Bebas Neue',sans-serif; font-size:1.3rem; letter-spacing:2px; }
+  .header-right { display:flex; align-items:center; gap:.75rem; }
+  .status-dot { width:7px; height:7px; border-radius:50%; background:var(--green); }
+  .logout-btn { font-size:.78rem; color:var(--muted); cursor:pointer; background:none; border:1px solid var(--border); border-radius:6px; padding:5px 10px; font-family:'DM Sans',sans-serif; transition:all .15s; }
+  .logout-btn:hover { color:var(--text); border-color:var(--muted); }
+
+  .wrap { max-width:820px; margin:0 auto; padding:0 2rem; }
+
+  /* CONFIG BANNER */
+  .config-banner {
+    background: #1a1500; border: 1px solid #3a3000;
+    border-radius: 10px; padding: 1rem 1.2rem;
+    margin: 1.5rem 0 0;
+    font-size: .83rem; line-height: 1.6; color: #ccc;
+  }
+  .config-banner strong { color: var(--yellow); display:block; margin-bottom:.3rem; }
+  .config-banner code { background:#2a2000; padding:1px 5px; border-radius:4px; font-size:.82rem; }
+  .config-fields { display:flex; flex-direction:column; gap:.8rem; margin-top:1rem; }
+  .config-fields .row { display:flex; gap:.75rem; flex-wrap:wrap; }
+  .cfg-saved { font-size:.78rem; color:var(--green); }
+
+  /* SECTION */
+  .section-head {
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 2rem 0 1rem;
+  }
+  .section-head h2 { font-family:'Bebas Neue',sans-serif; font-size:1.5rem; letter-spacing:1px; }
+
+  /* ADD FORM */
+  .add-form {
+    background:var(--s1); border:1px solid var(--border);
+    border-radius:14px; padding:1.4rem;
+    display:none; flex-direction:column; gap:1rem;
+    margin-bottom:1.5rem;
+    animation: fadeUp .2s ease;
+  }
+  .add-form.open { display:flex; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+  .form-row { display:flex; gap:.75rem; flex-wrap:wrap; }
+  .form-row .field { flex:1 1 200px; }
+  .form-actions { display:flex; gap:.75rem; justify-content:flex-end; }
+
+  /* TABLE */
+  .table-wrap { overflow-x:auto; margin-bottom:4rem; }
+  table { width:100%; border-collapse:collapse; font-size:.87rem; }
+  thead th {
+    text-align:left; font-size:.72rem; text-transform:uppercase; letter-spacing:.5px;
+    color:var(--muted); font-weight:600;
+    padding:.6rem .8rem; border-bottom:1px solid var(--border);
+  }
+  tbody tr { border-bottom:1px solid var(--border); transition:background .12s; }
+  tbody tr:hover { background:var(--s1); }
+  tbody td { padding:.7rem .8rem; vertical-align:middle; }
+  .td-name { font-weight:500; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .td-cat { font-size:.78rem; color:var(--yellow); }
+  .td-price { font-family:'Bebas Neue',sans-serif; font-size:1.1rem; letter-spacing:.5px; color:var(--yellow); }
+  .td-link a { color:var(--blue); font-size:.78rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:inline-block; max-width:140px; }
+  .td-actions { display:flex; gap:.4rem; }
+  .empty-row td { text-align:center; padding:3rem; color:var(--muted); }
+
+  /* EDIT MODAL */
+  .overlay {
+    display:none; position:fixed; inset:0;
+    background:rgba(0,0,0,.78); backdrop-filter:blur(5px);
+    z-index:200; align-items:center; justify-content:center; padding:1rem;
+  }
+  .overlay.open { display:flex; }
+  .modal {
+    background:var(--s1); border:1px solid var(--border);
+    border-radius:16px; padding:2rem; width:100%; max-width:500px;
+    display:flex; flex-direction:column; gap:1rem;
+    animation:pop .2s ease; max-height:90vh; overflow-y:auto;
+  }
+  .modal-head { display:flex; align-items:center; justify-content:space-between; }
+  .modal-head h3 { font-family:'Bebas Neue',sans-serif; font-size:1.5rem; letter-spacing:1px; }
+  .modal-close { background:none; border:none; color:var(--muted); font-size:1.4rem; cursor:pointer; line-height:1; }
+  .modal-close:hover { color:var(--text); }
+
+  /* TOAST */
+  .toast {
+    position:fixed; bottom:2rem; right:2rem;
+    background:var(--s1); border:1px solid var(--border); border-left:3px solid var(--yellow);
+    padding:.85rem 1.2rem; border-radius:10px; font-size:.87rem;
+    z-index:999; transform:translateY(8px); opacity:0; transition:all .25s; pointer-events:none;
+  }
+  .toast.show { transform:translateY(0); opacity:1; }
+  .toast.err { border-left-color:var(--red); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ LOGIN ═══════════════ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="badge">ML</div>
+      <span>Admin Panel</span>
+    </div>
+    <div>
+      <h2>Acceso privado</h2>
+      <p>Solo tú puedes modificar los productos. Ingresa tu contraseña de administrador.</p>
+    </div>
+    <div class="field">
+      <label>Contraseña</label>
+      <input type="password" id="pw-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()">
+    </div>
+    <button class="btn btn-yellow" onclick="login()">Entrar</button>
+    <p id="login-err" style="color:var(--red);font-size:.82rem;display:none">Contraseña incorrecta.</p>
+  </div>
+</div>
+
+<!-- ═══════════════ APP ═══════════════ -->
+<div id="app">
+
+  <header>
+    <div class="header-logo">
+      <div class="badge">ML</div>
+      <span>Admin</span>
+    </div>
+    <div class="header-right">
+      <div class="status-dot" title="Sesión activa"></div>
+      <a href="index.html" target="_blank" style="font-size:.78rem;color:var(--muted);text-decoration:none">Ver tienda ↗</a>
+      <button class="logout-btn" onclick="logout()">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+
+    <!-- CONFIG BANNER -->
+    <div class="config-banner" id="config-banner">
+      <strong>⚙️ Configuración de GitHub (solo la primera vez)</strong>
+      Para guardar cambios en GitHub Pages necesitas ingresar tu token y datos del repositorio.
+      Estos se guardan solo en tu navegador y nunca se envían a ningún servidor externo.
+      <div class="config-fields">
+        <div class="row">
+          <div class="field" style="flex:1 1 200px">
+            <label>Usuario de GitHub</label>
+            <input type="text" id="cfg-user" placeholder="tu-usuario">
+          </div>
+          <div class="field" style="flex:1 1 200px">
+            <label>Nombre del repositorio</label>
+            <input type="text" id="cfg-repo" placeholder="mi-tienda-ml">
+          </div>
+        </div>
+        <div class="field">
+          <label>GitHub Personal Access Token</label>
+          <input type="password" id="cfg-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+        </div>
+        <div style="display:flex;align-items:center;gap:1rem">
+          <button class="btn btn-yellow" style="width:auto;padding:8px 20px" onclick="saveConfig()">Guardar configuración</button>
+          <span class="cfg-saved" id="cfg-ok" style="display:none">✓ Configuración guardada</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRODUCTS SECTION -->
+    <div class="section-head">
+      <h2>Productos <span id="count-badge" style="color:var(--muted);font-size:1rem"></span></h2>
+      <button class="btn btn-yellow" style="width:auto;padding:9px 18px;font-size:.88rem" onclick="toggleForm()">
+        + Agregar producto
+      </button>
+    </div>
+
+    <!-- ADD FORM -->
+    <div class="add-form" id="addForm">
+      <div class="form-row">
+        <div class="field" style="flex:2 1 240px">
+          <label>Nombre *</label>
+          <input type="text" id="f-name" placeholder="Ej. AirPods Pro 2da generación">
+        </div>
+        <div class="field" style="flex:1 1 120px">
+          <label>Precio</label>
+          <input type="text" id="f-price" placeholder="$4,999">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field" style="flex:2 1 240px">
+          <label>Link de MercadoLibre *</label>
+          <input type="url" id="f-url" placeholder="https://www.mercadolibre.com.mx/...">
+        </div>
+        <div class="field" style="flex:1 1 120px">
+          <label>Categoría</label>
+          <input type="text" id="f-cat" placeholder="Electrónica">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field" style="flex:1">
+          <label>Descripción</label>
+          <textarea id="f-desc" placeholder="¿Qué lo hace especial?"></textarea>
+        </div>
+        <div class="field" style="flex:1 1 200px">
+          <label>URL imagen (opcional)</label>
+          <input type="url" id="f-img" placeholder="https://...">
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost" onclick="toggleForm()">Cancelar</button>
+        <button class="btn btn-yellow" style="width:auto;padding:9px 22px" onclick="addProduct()" id="add-btn">Guardar y publicar</button>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Categoría</th>
+            <th>Precio</th>
+            <th>Link</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+  </div><!-- /wrap -->
+</div><!-- /app -->
+
+<!-- EDIT MODAL -->
+<div class="overlay" id="editOverlay" onclick="if(event.target===this)closeEdit()">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Editar producto</h3>
+      <button class="modal-close" onclick="closeEdit()">×</button>
+    </div>
+    <div class="field"><label>Nombre *</label><input type="text" id="e-name"></div>
+    <div class="form-row">
+      <div class="field"><label>Precio</label><input type="text" id="e-price"></div>
+      <div class="field"><label>Categoría</label><input type="text" id="e-cat"></div>
+    </div>
+    <div class="field"><label>Link *</label><input type="url" id="e-url"></div>
+    <div class="field"><label>Descripción</label><textarea id="e-desc"></textarea></div>
+    <div class="field"><label>URL imagen</label><input type="url" id="e-img"></div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeEdit()">Cancelar</button>
+      <button class="btn btn-yellow" style="width:auto;padding:9px 22px" onclick="saveEdit()" id="save-edit-btn">Guardar y publicar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════
+// CONFIG — cambia esto si quieres:
+const ADMIN_PASSWORD = 'admin1234'; // ← CAMBIA ESTA CONTRASEÑA
+// ══════════════════════════════════════
+
+let products = [];
+let editingIdx = null;
+
+// ── AUTH ──
+function login() {
+  const pw = document.getElementById('pw-input').value;
+  if (pw === ADMIN_PASSWORD) {
+    sessionStorage.setItem('ml_auth', '1');
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadProducts();
+    loadConfig();
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+    document.getElementById('pw-input').value = '';
+    document.getElementById('pw-input').focus();
+  }
+}
+
+function logout() {
+  sessionStorage.removeItem('ml_auth');
+  location.reload();
+}
+
+// Auto-login si ya está autenticado en esta sesión
+if (sessionStorage.getItem('ml_auth') === '1') {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadProducts();
+  loadConfig();
+}
+
+// ── GITHUB CONFIG ──
+function loadConfig() {
+  const u = localStorage.getItem('gh_user') || '';
+  const r = localStorage.getItem('gh_repo') || '';
+  const t = localStorage.getItem('gh_token') || '';
+  document.getElementById('cfg-user').value  = u;
+  document.getElementById('cfg-repo').value  = r;
+  document.getElementById('cfg-token').value = t;
+  if (u && r && t) {
+    document.getElementById('cfg-ok').style.display = 'inline';
+  }
+}
+
+function saveConfig() {
+  const u = document.getElementById('cfg-user').value.trim();
+  const r = document.getElementById('cfg-repo').value.trim();
+  const t = document.getElementById('cfg-token').value.trim();
+  if (!u || !r || !t) { toast('Completa todos los campos de configuración', true); return; }
+  localStorage.setItem('gh_user', u);
+  localStorage.setItem('gh_repo', r);
+  localStorage.setItem('gh_token', t);
+  document.getElementById('cfg-ok').style.display = 'inline';
+  toast('✓ Configuración guardada');
+}
+
+function getConfig() {
+  return {
+    user:  localStorage.getItem('gh_user'),
+    repo:  localStorage.getItem('gh_repo'),
+    token: localStorage.getItem('gh_token'),
+  };
+}
+
+// ── LOAD from GitHub or local ──
+async function loadProducts() {
+  const { user, repo } = getConfig();
+  try {
+    const url = user && repo
+      ? `https://raw.githubusercontent.com/${user}/${repo}/main/products.json?v=${Date.now()}`
+      : 'products.json?v=' + Date.now();
+    const r = await fetch(url);
+    products = await r.json();
+  } catch { products = []; }
+  renderTable();
+}
+
+// ── GITHUB PUSH ──
+async function pushToGitHub(newProducts) {
+  const { user, repo, token } = getConfig();
+  if (!user || !repo || !token) {
+    toast('⚠ Configura GitHub primero (panel de arriba)', true);
+    return false;
+  }
+
+  const apiUrl = `https://api.github.com/repos/${user}/${repo}/contents/products.json`;
+
+  // get current SHA
+  let sha = null;
+  try {
+    const meta = await fetch(apiUrl, { headers: { Authorization: `Bearer ${token}` } });
+    if (meta.ok) { const j = await meta.json(); sha = j.sha; }
+  } catch {}
+
+  const content = btoa(unescape(encodeURIComponent(JSON.stringify(newProducts, null, 2))));
+  const body = { message: 'Update products.json', content, ...(sha ? { sha } : {}) };
+
+  const res = await fetch(apiUrl, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  return res.ok;
+}
+
+// ── RENDER TABLE ──
+function renderTable() {
+  const tbody = document.getElementById('tbody');
+  document.getElementById('count-badge').textContent = `(${products.length})`;
+
+  if (!products.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="5">Aún no hay productos. ¡Agrega el primero!</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = products.map((p, i) => `
+    <tr>
+      <td class="td-name" title="${esc(p.name)}">${esc(p.name)}</td>
+      <td class="td-cat">${esc(p.cat||'—')}</td>
+      <td class="td-price">${esc(p.price||'—')}</td>
+      <td class="td-link"><a href="${esc(p.url)}" target="_blank" rel="noopener" title="${esc(p.url)}">↗ Ver</a></td>
+      <td class="td-actions">
+        <button class="btn btn-ghost" style="padding:6px 10px;font-size:.8rem" onclick="openEdit(${i})">✏️ Editar</button>
+        <button class="btn btn-red" onclick="deleteProduct(${i})">🗑</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ── ADD ──
+function toggleForm() {
+  const f = document.getElementById('addForm');
+  f.classList.toggle('open');
+  if (f.classList.contains('open')) document.getElementById('f-name').focus();
+}
+
+async function addProduct() {
+  const name = document.getElementById('f-name').value.trim();
+  const url  = document.getElementById('f-url').value.trim();
+  if (!name) { toast('El nombre es obligatorio', true); return; }
+  if (!url)  { toast('El link es obligatorio', true); return; }
+
+  const p = {
+    id:    Date.now().toString(36),
+    name,
+    price: document.getElementById('f-price').value.trim(),
+    url,
+    cat:   document.getElementById('f-cat').value.trim() || 'General',
+    desc:  document.getElementById('f-desc').value.trim(),
+    img:   document.getElementById('f-img').value.trim(),
+  };
+
+  setBusy('add-btn', true);
+  products.unshift(p);
+  const ok = await pushToGitHub(products);
+  setBusy('add-btn', false);
+
+  if (ok) {
+    toast('✅ Producto publicado en tu tienda');
+    document.getElementById('addForm').classList.remove('open');
+    document.getElementById('addForm').querySelectorAll('input,textarea').forEach(el => el.value = '');
+  } else {
+    products.shift(); // rollback
+    toast('❌ Error al publicar. Revisa la configuración de GitHub.', true);
+  }
+  renderTable();
+}
+
+// ── DELETE ──
+async function deleteProduct(idx) {
+  if (!confirm(`¿Eliminar "${products[idx].name}"?`)) return;
+  const removed = products.splice(idx, 1);
+  renderTable();
+  const ok = await pushToGitHub(products);
+  if (!ok) { products.splice(idx, 0, removed[0]); renderTable(); toast('❌ Error al eliminar', true); return; }
+  toast('🗑 Producto eliminado');
+}
+
+// ── EDIT ──
+function openEdit(idx) {
+  editingIdx = idx;
+  const p = products[idx];
+  document.getElementById('e-name').value  = p.name;
+  document.getElementById('e-price').value = p.price || '';
+  document.getElementById('e-cat').value   = p.cat || '';
+  document.getElementById('e-url').value   = p.url;
+  document.getElementById('e-desc').value  = p.desc || '';
+  document.getElementById('e-img').value   = p.img || '';
+  document.getElementById('editOverlay').classList.add('open');
+}
+
+function closeEdit() {
+  document.getElementById('editOverlay').classList.remove('open');
+  editingIdx = null;
+}
+
+async function saveEdit() {
+  if (editingIdx === null) return;
+  const name = document.getElementById('e-name').value.trim();
+  const url  = document.getElementById('e-url').value.trim();
+  if (!name || !url) { toast('Nombre y link son obligatorios', true); return; }
+
+  const prev = { ...products[editingIdx] };
+  products[editingIdx] = {
+    ...products[editingIdx],
+    name,
+    price: document.getElementById('e-price').value.trim(),
+    cat:   document.getElementById('e-cat').value.trim() || 'General',
+    url,
+    desc:  document.getElementById('e-desc').value.trim(),
+    img:   document.getElementById('e-img').value.trim(),
+  };
+
+  setBusy('save-edit-btn', true);
+  const ok = await pushToGitHub(products);
+  setBusy('save-edit-btn', false);
+
+  if (ok) { toast('✅ Cambios publicados'); closeEdit(); }
+  else { products[editingIdx] = prev; toast('❌ Error al guardar', true); }
+  renderTable();
+}
+
+// ── UTILS ──
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toast(msg, err=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (err ? ' err' : '');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function setBusy(id, busy) {
+  const btn = document.getElementById(id);
+  btn.disabled = busy;
+  btn.textContent = busy ? 'Publicando…' : (id === 'add-btn' ? 'Guardar y publicar' : 'Guardar y publicar');
+}
+</script>
+</body>
+</html>
